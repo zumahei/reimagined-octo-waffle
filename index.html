@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Zumahe English Game</title>
+    <style>
+        :root { --blue: #00d2ff; --bg: #0a0a12; --card-bg: rgba(255, 255, 255, 0.05); }
+        body { margin: 0; background: var(--bg); color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        
+        .header-stats { display: none; justify-content: center; gap: 15px; padding: 15px; width: 100%; position: sticky; top: 0; background: var(--bg); }
+        .oval { border: 2px solid var(--blue); padding: 8px 25px; border-radius: 50px; font-weight: bold; box-shadow: 0 0 10px var(--blue); min-width: 100px; text-align: center; }
+
+        .page { display: none; width: 90%; max-width: 400px; text-align: center; margin-top: 40px; }
+        .active { display: flex; flex-direction: column; }
+
+        .btn { background: var(--card-bg); border: 2px solid var(--blue); color: white; padding: 15px; margin: 10px 0; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        input { background: rgba(255,255,255,0.1); border: 1px solid var(--blue); padding: 15px; border-radius: 10px; color: white; text-align: center; margin: 10px 0; }
+        
+        .stat-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .hearts { font-size: 24px; color: red; margin: 10px 0; }
+        .game-over-box { background: white; color: black; padding: 40px 20px; border-radius: 20px; font-weight: bold; font-size: 28px; }
+        .dev { margin-top: 40px; font-size: 12px; opacity: 0.6; }
+    </style>
+</head>
+<body>
+
+    <div class="header-stats" id="main-stats">
+        <div class="oval">ŽÉ - <span id="ze-val">0</span></div>
+        <div class="oval">XP - <span id="xp-val">0</span></div>
+    </div>
+
+    <div id="welcome-page" class="page active">
+        <h1 id="greet-text">Assalomu Alaykum</h1>
+        <div id="name-box">
+            <p>Ismingizni Kiriting:</p>
+            <input type="text" id="user-name-input" placeholder="Ismingizni yozing...">
+            <button class="btn" onclick="handleGreeting()">Yuborish</button>
+        </div>
+        <div id="start-menu" style="display: none;">
+            <button class="btn" onclick="goToMenu()">O'yinni Boshlash</button>
+            <button class="btn" onclick="showInfo()">O'yin Haqida Ma'lumot</button>
+            <p class="dev">DEVELOPER: IBROHIMOV JO'RABEK 👨🏻‍💻</p>
+        </div>
+    </div>
+
+    <div id="info-page" class="page">
+        <h2>Ma'lumot</h2>
+        <p>1: ŽÉ - O'yin puli, unga boost olsangiz bo'ladi.</p>
+        <p>2: Sizda 3 ta jon bo'ladi, xatoda bittasi ketadi.</p>
+        <button class="btn" onclick="backToWelcome()">Orqaga</button>
+    </div>
+
+    <div id="menu-page" class="page">
+        <button class="btn" onclick="startQuiz()">INGILIZ TILIDAN SAVOL</button>
+        <button class="btn" onclick="showSoon()">TEZ KUNDA</button>
+        <button class="btn" onclick="showMarket()">MARKET</button>
+        <button class="btn" onclick="showStats()">STATISTIKA</button>
+    </div>
+
+    <div id="quiz-page" class="page">
+        <div class="hearts" id="hearts-ui">❤️❤️❤️</div>
+        <h2 id="q-word">Word</h2>
+        <input type="text" id="quiz-input" placeholder="Tarjimasini yozing">
+        <button class="btn" onclick="checkAnswer()">Tasdiqlash</button>
+    </div>
+
+    <div id="soon-page" class="page"><h1>TEZ KUNDA</h1><button class="btn" onclick="goToMenu()">Orqaga</button></div>
+
+    <div id="market-page" class="page">
+        <h2>MARKET</h2>
+        <button class="btn" onclick="buy(20)">20 ŽÉ = 2x XP 3 MINUT</button>
+        <button class="btn" onclick="buy(35)">35 ŽÉ = 2x XP 5 MINUT</button>
+        <button class="btn" onclick="buy(50)">50 ŽÉ = 2x XP 8 MINUT</button>
+        <button class="btn" onclick="goToMenu()">Orqaga</button>
+    </div>
+
+    <div id="stats-page" class="page">
+        <h2>STATISTIKA</h2>
+        <div id="leaderboard">O'yinni tugatganlar ro'yxati bo'sh.</div>
+        <button class="btn" onclick="goToMenu()">Orqaga</button>
+    </div>
+
+    <script>
+        const words = [
+            {en: "Hello", uz: "salom"}, {en: "Yes", uz: "ha"}, {en: "No", uz: "yo'q"},
+            {en: "Please", uz: "iltimos"}, {en: "Thanks", uz: "rahmat"}, {en: "Sorry", uz: "uzr"},
+            {en: "Name", uz: "ism"}, {en: "Friend", uz: "do'st"}, {en: "Family", uz: "oila"},
+            {en: "Book", uz: "kitob"}, {en: "Water", uz: "suv"}, {en: "Food", uz: "ovqat"},
+            {en: "Bread", uz: "non"}, {en: "School", uz: "maktab"}, {en: "Home", uz: "uy"},
+            {en: "Work", uz: "ish"}, {en: "Money", uz: "pul"}, {en: "Time", uz: "vaqt"},
+            {en: "Day", uz: "kun"}, {en: "Night", uz: "tun"}, {en: "Today", uz: "bugun"},
+            {en: "Now", uz: "hozir"}, {en: "Good", uz: "yaxshi"}, {en: "Bad", uz: "yomon"},
+            {en: "Big", uz: "katta"}, {en: "Small", uz: "kichik"}, {en: "Hot", uz: "issiq"},
+            {en: "Cold", uz: "sovuq"}, {en: "Happy", uz: "baxtli"}, {en: "Sad", uz: "xafa"},
+            {en: "Love", uz: "sevgi"}, {en: "Help", uz: "yordam"}, {en: "City", uz: "shahar"},
+            {en: "Street", uz: "ko'cha"}, {en: "Car", uz: "mashina"}, {en: "Man", uz: "erkak"},
+            {en: "Woman", uz: "ayol"}, {en: "Boy", uz: "bola"}, {en: "Girl", uz: "qiz"},
+            {en: "Eat", uz: "yemoq"}, {en: "Drink", uz: "ichmoq"}, {en: "Go", uz: "bormoq"},
+            {en: "Come", uz: "kelmoq"}, {en: "See", uz: "ko'rmoq"}, {en: "Sleep", uz: "uxlamoq"},
+            {en: "Read", uz: "o'qimoq"}, {en: "Write", uz: "yozmoq"}, {en: "Open", uz: "ochmoq"},
+            {en: "Close", uz: "yopmoq"}, {en: "Stop", uz: "to'xtamoq"}
+        ];
+
+        let state = { name: "", ze: 0, xp: 0, hearts: 3, qIndex: 0, startTime: 0, currentWords: [], stats: [] };
+
+        function switchPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if(id !== 'welcome-page' && id !== 'info-page') document.getElementById('main-stats').style.display = 'flex';
+        }
+
+        function handleGreeting() {
+            let n = document.getElementById('user-name-input').value;
+            if(n) {
+                state.name = n;
+                document.getElementById('greet-text').innerText = "Assalomu alaykum " + n;
+                document.getElementById('name-box').style.display = 'none';
+                document.getElementById('start-menu').style.display = 'block';
+            }
+        }
+
+        function showInfo() { switchPage('info-page'); }
+        function backToWelcome() { switchPage('welcome-page'); }
+        function goToMenu() { switchPage('menu-page'); }
+        function showSoon() { switchPage('soon-page'); }
+        function showMarket() { switchPage('market-page'); }
+
+        function showStats() {
+            const list = document.getElementById('leaderboard');
+            if(state.stats.length === 0) {
+                list.innerText = "Hali hech kim o'ynamadi.";
+            } else {
+                state.stats.sort((a,b) => b.xp - a.xp);
+                list.innerHTML = state.stats.map((s, i) => `<div class="stat-item"><span>${i+1}. ${s.name}</span> <span>${s.xp} XP</span></div>`).join('');
+            }
+            switchPage('stats-page');
+        }
+
+        function startQuiz() {
+            state.hearts = 3; state.qIndex = 0; state.startTime = Date.now();
+            state.currentWords = [...words].sort(() => Math.random() - 0.5);
+            switchPage('quiz-page');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            document.getElementById('hearts-ui').innerText = "❤️".repeat(state.hearts);
+            document.getElementById('q-word').innerText = state.currentWords[state.qIndex].en;
+            document.getElementById('quiz-input').value = "";
+        }
+
+        function checkAnswer() {
+            let u = document.getElementById('quiz-input').value.toLowerCase().trim();
+            if(u === state.currentWords[state.qIndex].uz) {
+                state.ze += 5; state.xp += 25; state.qIndex++;
+                if(state.qIndex >= 50) winGame(); else renderQuestion();
+            } else {
+                state.hearts--;
+                if(state.hearts <= 0) showGameOver(); else renderQuestion();
+            }
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('ze-val').innerText = state.ze;
+            document.getElementById('xp-val').innerText = state.xp;
+        }
+
+        function showGameOver() {
+            document.getElementById('quiz-page').innerHTML = `<div class="game-over-box">Game Over 😥</div><button class="btn" onclick="location.reload()">Qayta Urunish</button>`;
+        }
+
+        function winGame() {
+            let t = Math.floor((Date.now() - state.startTime)/1000);
+            state.stats.push({name: state.name, xp: state.xp});
+            alert(`Yutdingiz! Vaqt: ${Math.floor(t/60)}:${t%60}. Bali: ${state.xp} XP`);
+            goToMenu();
+        }
+
+        function buy(amt) {
+            if(state.ze >= amt) { state.ze -= amt; updateStats(); alert("Boost faollashdi!"); } else alert("ŽÉ yetarli emas!");
+        }
+    </script>
+</body>
+</html>
